@@ -1,7 +1,12 @@
 const express = require("express");
 const cors = require("cors");
 
-const registerUserModule = require("./lib/Usuario/Infraestructura/http"); // auto-usa index.js del módulo
+// Importa todos los módulos
+const registerUserModule = require("./lib/Usuario/Infraestructura/http");
+const registerVacanteModule = require("./lib/Vacante/Infraestructura/http");
+const registerPostulacionModule = require("./lib/Postulacion/Infraestructura/http");
+const registerHabilidadModule = require("./lib/Habilidad/Infraestructura/http");
+const registerCandidatoHabilidadModule = require("./lib/CandidatoHabilidad/Infraestructura/http");
 
 function buildApp() {
   const app = express();
@@ -13,11 +18,15 @@ function buildApp() {
 
   // Módulos
   registerUserModule(app);
+  registerVacanteModule(app);
+  registerPostulacionModule(app);
+  registerHabilidadModule(app);
+  registerCandidatoHabilidadModule(app);
 
-  // 404 (opcional, recomendado)
+  // 404
   app.use((req, res) => res.status(404).json({ message: "Ruta no encontrada" }));
 
-  // Error handler (opcional, recomendado)
+  // Error handler
   app.use((err, req, res, next) => {
     console.error(err);
     res.status(err.statusCode || 500).json({
