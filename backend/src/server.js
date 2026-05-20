@@ -1,3 +1,4 @@
+require("dotenv").config();
 const buildApp = require("./app");
 
 //const { connection: mongoConnection } = require("./Infraestructura/database/Mongo");

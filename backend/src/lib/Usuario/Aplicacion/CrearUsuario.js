@@ -1,3 +1,4 @@
+const bcrypt = require("bcryptjs");
 const Usuario = require("../Dominio/Entidades/Usuario");
 
 class CrearUsuario {
@@ -6,7 +7,8 @@ class CrearUsuario {
   }
 
   async ejecutar(data) {
-    const usuario = new Usuario(data);
+    const hashedClave = await bcrypt.hash(data.clave, 10);
+    const usuario = new Usuario({ ...data, clave: hashedClave });
     return await this.usuarioRepository.save(usuario);
   }
 }
