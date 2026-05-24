@@ -1,5 +1,5 @@
 const CrearVacante = require("../../Aplicacion/CrearVacante");
-const ListarVacantes = require("../../Aplicacion/ListarVacante");
+const ListarVacante = require("../../Aplicacion/ListarVacante");
 const ActualizarVacante = require("../../Aplicacion/ActualizarVacante");
 const EliminarVacante = require("../../Aplicacion/EliminarVacante");
 
