@@ -1,26 +1,30 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { loginUsuario } from "../api/auth";
 
-export default function LoginPage() {
+export default function PaginaLogin() {
+  const navegar = useNavigate();
   const [correo, setCorreo] = useState("");
   const [clave, setClave] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function manejarEnvio(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setCargando(true);
 
     try {
-      const data = await loginUsuario(correo, clave);
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("usuario", JSON.stringify(data.usuario));
-      alert(`Bienvenido, ${data.usuario.nombre}!`);
+      const respuesta = await loginUsuario(correo, clave);
+      navegar(respuesta.usuario.rol === "admin" ? "/admin" : "/candidato");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo conectar con el servidor");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "No se pudo conectar con el servidor",
+      );
     } finally {
-      setLoading(false);
+      setCargando(false);
     }
   }
 
@@ -42,7 +46,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={manejarEnvio} className="space-y-5">
           <div>
             <input
               type="email"
@@ -66,10 +70,10 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={cargando}
             className="w-full bg-black hover:bg-gray-800 text-white font-semibold py-4 rounded-2xl transition-all disabled:opacity-50"
           >
-            {loading ? "Cargando..." : "Iniciar sesión"}
+            {cargando ? "Cargando..." : "Iniciar sesión"}
           </button>
         </form>
 
