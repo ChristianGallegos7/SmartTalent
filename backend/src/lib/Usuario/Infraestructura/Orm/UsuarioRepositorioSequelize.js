@@ -43,6 +43,18 @@ class UsuarioRepositorioSequelize {
     });
   }
 
+  async findById(id) {
+    const data = await UsuarioModel.findByPk(id);
+    if (!data) return null;
+    return new Usuario({
+      usuario_id: data.usuario_id,
+      nombre: data.nombre,
+      correo: data.correo,
+      clave: data.clave,
+      rol: data.rol
+    });
+  }
+
   async update(id, datos) {
     await UsuarioModel.update(datos, {
       where: { usuario_id: id }

@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
+const auth = require("../../../../middlewares/auth");
 
 module.exports = (controller) => {
-  router.post("/crear", controller.crear);
-  router.get("/ver", controller.listar);
-  router.put("/actualizar", controller.actualizar); // usa body con candidato_id + habilidad_id
-  router.delete("/eliminar", controller.eliminar);  // usa body con candidato_id + habilidad_id
+  router.post("/crear", auth, controller.crear);
+  router.get("/ver", auth, controller.listar);
+  router.put("/actualizar", auth, controller.actualizar);
+  router.delete("/eliminar", auth, controller.eliminar);
   return router;
 };

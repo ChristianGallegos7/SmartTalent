@@ -19,21 +19,33 @@ exports.crear = async (req, res) => {
 };
 
 exports.listar = async (req, res) => {
-  const caso = new ListarUsuario(repo);
-  const data = await caso.ejecutar();
-  res.json(data);
+  try {
+    const caso = new ListarUsuario(repo);
+    const data = await caso.ejecutar();
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 };
 
 exports.actualizar = async (req, res) => {
-  const caso = new ActualizarUsuario(repo);
-  const data = await caso.ejecutar(req.params.id, req.body);
-  res.json(data);
+  try {
+    const caso = new ActualizarUsuario(repo);
+    const data = await caso.ejecutar(req.params.id, req.body);
+    res.json(data);
+  } catch (e) {
+    res.status(e.statusCode || 500).json({ error: e.message });
+  }
 };
 
 exports.eliminar = async (req, res) => {
-  const caso = new EliminarUsuario(repo);
-  await caso.ejecutar(req.params.id);
-  res.json({ mensaje: "Usuario eliminado" });
+  try {
+    const caso = new EliminarUsuario(repo);
+    await caso.ejecutar(req.params.id);
+    res.json({ mensaje: "Usuario eliminado" });
+  } catch (e) {
+    res.status(e.statusCode || 500).json({ error: e.message });
+  }
 };
 
 exports.login = async (req, res) => {
