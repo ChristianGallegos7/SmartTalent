@@ -1,15 +1,22 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { obtenerSesion } from "../../api/session";
 import { logoutUsuario } from "../../api/auth";
-import { listarVacantes, crearVacante, eliminarVacante } from "../../api/vacantes";
-import { listarPostulaciones } from "../../api/postulaciones";
 import { listarHabilidades } from "../../api/habilidades";
-import { listarVacanteHabilidades, asociarHabilidadVacante } from "../../api/vacanteHabilidades";
-import type { Vacante } from "../../tipos/vacante";
-import type { Postulacion } from "../../tipos/postulacion";
-import type { Habilidad } from "../../tipos/habilidad";
+import { listarPostulaciones } from "../../api/postulaciones";
+import { obtenerSesion } from "../../api/session";
 import type { VacanteHabilidad } from "../../api/vacanteHabilidades";
+import {
+  asociarHabilidadVacante,
+  listarVacanteHabilidades,
+} from "../../api/vacanteHabilidades";
+import {
+  crearVacante,
+  eliminarVacante,
+  listarVacantes,
+} from "../../api/vacantes";
+import type { Habilidad } from "../../tipos/habilidad";
+import type { Postulacion } from "../../tipos/postulacion";
+import type { Vacante } from "../../tipos/vacante";
 
 type Pestana = "vacantes" | "postulaciones";
 
@@ -20,11 +27,15 @@ export default function PanelAdmin() {
   const [vacantes, setVacantes] = useState<Vacante[]>([]);
   const [postulaciones, setPostulaciones] = useState<Postulacion[]>([]);
   const [habilidades, setHabilidades] = useState<Habilidad[]>([]);
-  const [vacanteHabilidades, setVacanteHabilidades] = useState<VacanteHabilidad[]>([]);
+  const [vacanteHabilidades, setVacanteHabilidades] = useState<
+    VacanteHabilidad[]
+  >([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
   const [formulario, setFormulario] = useState({ titulo: "", descripcion: "" });
-  const [habilidadesSeleccionadas, setHabilidadesSeleccionadas] = useState<number[]>([]);
+  const [habilidadesSeleccionadas, setHabilidadesSeleccionadas] = useState<
+    number[]
+  >([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [creando, setCreando] = useState(false);
 
@@ -36,12 +47,13 @@ export default function PanelAdmin() {
     setCargando(true);
     setError("");
     try {
-      const [listaVacantes, listaPostulaciones, listaHabilidades, listaVH] = await Promise.all([
-        listarVacantes(),
-        listarPostulaciones(),
-        listarHabilidades(),
-        listarVacanteHabilidades(),
-      ]);
+      const [listaVacantes, listaPostulaciones, listaHabilidades, listaVH] =
+        await Promise.all([
+          listarVacantes(),
+          listarPostulaciones(),
+          listarHabilidades(),
+          listarVacanteHabilidades(),
+        ]);
       setVacantes(listaVacantes);
       setPostulaciones(listaPostulaciones);
       setHabilidades(listaHabilidades);
@@ -63,8 +75,8 @@ export default function PanelAdmin() {
       });
       await Promise.all(
         habilidadesSeleccionadas.map((habilidad_id) =>
-          asociarHabilidadVacante(nuevaVacante.vacante_id, habilidad_id)
-        )
+          asociarHabilidadVacante(nuevaVacante.vacante_id, habilidad_id),
+        ),
       );
       setFormulario({ titulo: "", descripcion: "" });
       setHabilidadesSeleccionadas([]);
@@ -82,15 +94,19 @@ export default function PanelAdmin() {
     try {
       await eliminarVacante(id);
       setVacantes((prev) => prev.filter((v) => v.vacante_id !== id));
-      setVacanteHabilidades((prev) => prev.filter((vh) => vh.vacante_id !== id));
+      setVacanteHabilidades((prev) =>
+        prev.filter((vh) => vh.vacante_id !== id),
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al eliminar vacante");
+      setError(
+        err instanceof Error ? err.message : "Error al eliminar vacante",
+      );
     }
   }
 
   function toggleHabilidad(id: number) {
     setHabilidadesSeleccionadas((prev) =>
-      prev.includes(id) ? prev.filter((h) => h !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((h) => h !== id) : [...prev, id],
     );
   }
 
@@ -112,7 +128,8 @@ export default function PanelAdmin() {
         <h1 className="text-xl font-bold text-gray-900">SmartTalent</h1>
         <div className="flex items-center gap-4">
           <span className="text-sm text-gray-500">
-            Admin: <span className="font-medium text-gray-800">{usuario.nombre}</span>
+            Admin:{" "}
+            <span className="font-medium text-gray-800">{usuario.nombre}</span>
           </span>
           <button
             onClick={cerrarSesion}
@@ -172,14 +189,19 @@ export default function PanelAdmin() {
                     onSubmit={manejarCrearVacante}
                     className="bg-white rounded-2xl border border-gray-100 p-6 mb-6 space-y-4"
                   >
-                    <h3 className="font-semibold text-gray-800">Nueva vacante</h3>
+                    <h3 className="font-semibold text-gray-800">
+                      Nueva vacante
+                    </h3>
                     <input
                       type="text"
                       placeholder="Título"
                       required
                       value={formulario.titulo}
                       onChange={(e) =>
-                        setFormulario((prev) => ({ ...prev, titulo: e.target.value }))
+                        setFormulario((prev) => ({
+                          ...prev,
+                          titulo: e.target.value,
+                        }))
                       }
                       className="w-full px-4 py-3 bg-gray-50 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -188,7 +210,10 @@ export default function PanelAdmin() {
                       required
                       value={formulario.descripcion}
                       onChange={(e) =>
-                        setFormulario((prev) => ({ ...prev, descripcion: e.target.value }))
+                        setFormulario((prev) => ({
+                          ...prev,
+                          descripcion: e.target.value,
+                        }))
                       }
                       className="w-full px-4 py-3 bg-gray-50 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                       rows={3}
@@ -205,7 +230,8 @@ export default function PanelAdmin() {
                       ) : (
                         <div className="flex flex-wrap gap-2">
                           {habilidades.map((h) => {
-                            const seleccionada = habilidadesSeleccionadas.includes(h.habilidad_id);
+                            const seleccionada =
+                              habilidadesSeleccionadas.includes(h.habilidad_id);
                             return (
                               <button
                                 key={h.habilidad_id}
@@ -249,8 +275,12 @@ export default function PanelAdmin() {
                           className="bg-white rounded-2xl border border-gray-100 p-5 flex justify-between items-start"
                         >
                           <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900">{vacante.titulo}</h3>
-                            <p className="text-sm text-gray-500 mt-1">{vacante.descripcion}</p>
+                            <h3 className="font-semibold text-gray-900">
+                              {vacante.titulo}
+                            </h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                              {vacante.descripcion}
+                            </p>
                             {skills.length > 0 && (
                               <div className="flex flex-wrap gap-1.5 mt-3">
                                 {skills.map((h) => (
@@ -265,7 +295,9 @@ export default function PanelAdmin() {
                             )}
                           </div>
                           <button
-                            onClick={() => manejarEliminarVacante(vacante.vacante_id)}
+                            onClick={() =>
+                              manejarEliminarVacante(vacante.vacante_id)
+                            }
                             className="text-red-400 hover:text-red-600 text-sm font-medium transition-colors shrink-0 ml-4"
                           >
                             Eliminar
@@ -292,19 +324,38 @@ export default function PanelAdmin() {
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50 border-b border-gray-100">
                         <tr>
-                          <th className="text-left px-5 py-3 font-medium text-gray-500">ID</th>
-                          <th className="text-left px-5 py-3 font-medium text-gray-500">Candidato</th>
-                          <th className="text-left px-5 py-3 font-medium text-gray-500">Vacante</th>
-                          <th className="text-left px-5 py-3 font-medium text-gray-500">Match</th>
+                          <th className="text-left px-5 py-3 font-medium text-gray-500">
+                            ID
+                          </th>
+                          <th className="text-left px-5 py-3 font-medium text-gray-500">
+                            Candidato
+                          </th>
+                          <th className="text-left px-5 py-3 font-medium text-gray-500">
+                            Vacante
+                          </th>
+                          <th className="text-left px-5 py-3 font-medium text-gray-500">
+                            Match
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
                         {postulaciones.map((p) => (
-                          <tr key={p.postulacion_id} className="border-b border-gray-50 last:border-0">
-                            <td className="px-5 py-3 text-gray-400">#{p.postulacion_id}</td>
-                            <td className="px-5 py-3 text-gray-700">Usuario #{p.usuario_id}</td>
-                            <td className="px-5 py-3 text-gray-700">Vacante #{p.vacante_id}</td>
-                            <td className="px-5 py-3 text-gray-700">{p.match_score ?? "—"}</td>
+                          <tr
+                            key={p.postulacion_id}
+                            className="border-b border-gray-50 last:border-0"
+                          >
+                            <td className="px-5 py-3 text-gray-400">
+                              #{p.postulacion_id}
+                            </td>
+                            <td className="px-5 py-3 text-gray-700">
+                              Usuario #{p.usuario_id}
+                            </td>
+                            <td className="px-5 py-3 text-gray-700">
+                              Vacante #{p.vacante_id}
+                            </td>
+                            <td className="px-5 py-3 text-gray-700">
+                              {p.match_score ?? "—"}
+                            </td>
                           </tr>
                         ))}
                       </tbody>

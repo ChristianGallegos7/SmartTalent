@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 
 // Importa todos los módulos
 const registerUserModule = require("./lib/Usuario/Infraestructura/http");
@@ -16,6 +17,7 @@ function buildApp() {
   app.use(cors());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+  app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
   // Módulos
   registerUserModule(app);

@@ -8,8 +8,16 @@ const repo = new PostulacionRepository();
 
 exports.crear = async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ error: "El CV en formato PDF es obligatorio" });
+    }
     const caso = new CrearPostulacion(repo);
-    const postulacion = await caso.ejecutar(req.body);
+    const datos = {
+      usuario_id: Number(req.body.usuario_id),
+      vacante_id: Number(req.body.vacante_id),
+      resume_url: `/uploads/${req.file.filename}`,
+    };
+    const postulacion = await caso.ejecutar(datos);
     res.json(postulacion);
   } catch (e) {
     res.status(e.statusCode || 500).json({ error: e.message });
