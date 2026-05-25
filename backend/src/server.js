@@ -2,9 +2,11 @@ require("dotenv").config();
 const buildApp = require("./app");
 
 //const { connection: mongoConnection } = require("./Infraestructura/database/Mongo");
-const { connection: pgConnection } = require("./Infraestructura/database/Postgres");
+const {
+  connection: pgConnection,
+} = require("./Infraestructura/database/Postgres");
 const { syncModels } = require("./models/index");
-
+const { seedUsuarios } = require("./seed");
 
 async function start() {
   const port = Number(process.env.PORT) || 3977;
@@ -12,9 +14,10 @@ async function start() {
   // conectar ambas BD
   //await mongoConnection();
   await pgConnection();
-  await syncModels();  
+  await syncModels();
+  await seedUsuarios();
 
-  console.log("Mongo y PostgreSQL conectados");
+  console.log("PostgreSQL conectados");
 
   const app = buildApp();
 
