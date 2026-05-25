@@ -32,3 +32,19 @@ export async function loginUsuario(
 export function logoutUsuario(): void {
   limpiarSesion();
 }
+
+export async function registrarUsuario(datos: {
+  nombre: string;
+  correo: string;
+  clave: string;
+}): Promise<void> {
+  const solicitud = await fetch(`${URL_API}/api/usuarios/crear`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...datos, rol: "candidato" }),
+  });
+  const respuesta = await solicitud.json();
+  if (!solicitud.ok) {
+    throw new Error(respuesta.error ?? "Error al registrarse");
+  }
+}

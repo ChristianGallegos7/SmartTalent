@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { loginUsuario } from "../api/auth";
 
 export default function PaginaLogin() {
@@ -32,7 +32,10 @@ export default function PaginaLogin() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-white p-10 rounded-[2rem] shadow-xl shadow-gray-200/50 border border-gray-100">
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <Link to="/" className="text-xl font-bold text-gray-900">
+            SmartTalent
+          </Link>
+          <h1 className="text-2xl font-bold text-gray-900 mt-4 mb-2">
             Bienvenido de nuevo
           </h1>
           <p className="text-gray-500">
@@ -79,9 +82,9 @@ export default function PaginaLogin() {
 
         <p className="text-center text-gray-400 text-sm mt-8">
           ¿No tienes cuenta?{" "}
-          <a href="#" className="text-black font-medium hover:underline">
+          <Link to="/registro" className="text-black font-medium hover:underline">
             Regístrate aquí
-          </a>
+          </Link>
         </p>
       </div>
     </div>
