@@ -6,6 +6,7 @@ const VacanteModel = require("../lib/Vacante/Infraestructura/Orm/VacanteModelSeq
 const PostulacionModel = require("../lib/Postulacion/Infraestructura/Orm/PostulacionModelSequelize");
 const HabilidadModel = require("../lib/Habilidad/Infraestructura/Orm/HabilidadModelSequelize");
 const CandidatoHabilidadModel = require("../lib/CandidatoHabilidad/Infraestructura/Orm/CandidatoHabilidadModelSequelize");
+const VacanteHabilidadModel = require("../lib/VacanteHabilidad/Infraestructura/Orm/VacanteHabilidadModelSequelize");
 
 async function syncModels() {
   try {
@@ -23,5 +24,6 @@ module.exports = {
   PostulacionModel,
   HabilidadModel,
   CandidatoHabilidadModel,
+  VacanteHabilidadModel,
   syncModels
 };

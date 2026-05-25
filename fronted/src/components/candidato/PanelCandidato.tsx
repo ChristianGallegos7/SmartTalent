@@ -4,8 +4,12 @@ import { obtenerSesion } from "../../api/session";
 import { logoutUsuario } from "../../api/auth";
 import { listarVacantes } from "../../api/vacantes";
 import { listarPostulaciones, crearPostulacion } from "../../api/postulaciones";
+import { listarHabilidades } from "../../api/habilidades";
+import { listarVacanteHabilidades } from "../../api/vacanteHabilidades";
 import type { Vacante } from "../../tipos/vacante";
 import type { Postulacion } from "../../tipos/postulacion";
+import type { Habilidad } from "../../tipos/habilidad";
+import type { VacanteHabilidad } from "../../api/vacanteHabilidades";
 
 type Pestana = "vacantes" | "postulaciones" | "perfil";
 
@@ -21,6 +25,8 @@ export default function PanelCandidato() {
   const [pestana, setPestana] = useState<Pestana>("vacantes");
   const [vacantes, setVacantes] = useState<Vacante[]>([]);
   const [postulaciones, setPostulaciones] = useState<Postulacion[]>([]);
+  const [habilidades, setHabilidades] = useState<Habilidad[]>([]);
+  const [vacanteHabilidades, setVacanteHabilidades] = useState<VacanteHabilidad[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
   const [postulando, setPostulando] = useState<number | null>(null);
@@ -33,12 +39,16 @@ export default function PanelCandidato() {
     setCargando(true);
     setError("");
     try {
-      const [listaVacantes, listaPostulaciones] = await Promise.all([
+      const [listaVacantes, listaPostulaciones, listaHabilidades, listaVH] = await Promise.all([
         listarVacantes(),
         listarPostulaciones(),
+        listarHabilidades(),
+        listarVacanteHabilidades(),
       ]);
       setVacantes(listaVacantes);
       setPostulaciones(listaPostulaciones);
+      setHabilidades(listaHabilidades);
+      setVacanteHabilidades(listaVH);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al cargar datos");
     } finally {
@@ -56,6 +66,13 @@ export default function PanelCandidato() {
     } finally {
       setPostulando(null);
     }
+  }
+
+  function habilidadesDeVacante(vacante_id: number): Habilidad[] {
+    const ids = vacanteHabilidades
+      .filter((vh) => vh.vacante_id === vacante_id)
+      .map((vh) => vh.habilidad_id);
+    return habilidades.filter((h) => ids.includes(h.habilidad_id));
   }
 
   const misPostulaciones = postulaciones.filter((p) => p.usuario_id === usuario.id);
@@ -120,14 +137,28 @@ export default function PanelCandidato() {
                   </p>
                 ) : (
                   <div className="grid gap-4">
-                    {vacantes.map((vacante) => (
+                    {vacantes.map((vacante) => {
+                      const skills = habilidadesDeVacante(vacante.vacante_id);
+                      return (
                       <div
                         key={vacante.vacante_id}
                         className="bg-white rounded-2xl border border-gray-100 p-5 flex justify-between items-start"
                       >
-                        <div>
+                        <div className="flex-1">
                           <h3 className="font-semibold text-gray-900">{vacante.titulo}</h3>
                           <p className="text-sm text-gray-500 mt-1">{vacante.descripcion}</p>
+                          {skills.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-3">
+                              {skills.map((h) => (
+                                <span
+                                  key={h.habilidad_id}
+                                  className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-lg"
+                                >
+                                  {h.nombre}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <button
                           onClick={() => manejarPostular(vacante.vacante_id)}
@@ -148,7 +179,8 @@ export default function PanelCandidato() {
                             : "Postular"}
                         </button>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </section>

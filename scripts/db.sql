@@ -34,7 +34,16 @@ CREATE TABLE postulaciones (
     CONSTRAINT fk_post_vacante FOREIGN KEY (vacante_id) REFERENCES vacantes(vacante_id)
 );
 
--- 5. Candidato_Habilidades (Relacionada con usuarios y habilidades)
+-- 5. Vacante_Habilidades (Relacionada con vacantes y habilidades)
+CREATE TABLE vacante_habilidades (
+    vacante_id INT NOT NULL,
+    habilidad_id INT NOT NULL,
+    PRIMARY KEY (vacante_id, habilidad_id),
+    CONSTRAINT fk_vac_hab_vacante FOREIGN KEY (vacante_id) REFERENCES vacantes(vacante_id),
+    CONSTRAINT fk_vac_hab_habilidad FOREIGN KEY (habilidad_id) REFERENCES habilidades(habilidad_id)
+);
+
+-- 6. Candidato_Habilidades (Relacionada con usuarios y habilidades)
 CREATE TABLE candidato_habilidades (
     candidato_id INT NOT NULL,
     habilidad_id INT NOT NULL,

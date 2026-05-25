@@ -7,6 +7,7 @@ const registerVacanteModule = require("./lib/Vacante/Infraestructura/http");
 const registerPostulacionModule = require("./lib/Postulacion/Infraestructura/http");
 const registerHabilidadModule = require("./lib/Habilidad/Infraestructura/http");
 const registerCandidatoHabilidadModule = require("./lib/CandidatoHabilidad/Infraestructura/http");
+const registerVacanteHabilidadModule = require("./lib/VacanteHabilidad/Infraestructura/http");
 
 function buildApp() {
   const app = express();
@@ -22,6 +23,7 @@ function buildApp() {
   registerPostulacionModule(app);
   registerHabilidadModule(app);
   registerCandidatoHabilidadModule(app);
+  registerVacanteHabilidadModule(app);
 
   // 404
   app.use((req, res) => res.status(404).json({ message: "Ruta no encontrada" }));
