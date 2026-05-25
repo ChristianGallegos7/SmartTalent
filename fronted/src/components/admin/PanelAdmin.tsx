@@ -17,7 +17,7 @@ export default function PanelAdmin() {
   const [postulaciones, setPostulaciones] = useState<Postulacion[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
-  const [formulario, setFormulario] = useState({ titulo: "", descripcion: "", empresa_id: "" });
+  const [formulario, setFormulario] = useState({ titulo: "", descripcion: "" });
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [creando, setCreando] = useState(false);
 
@@ -49,9 +49,8 @@ export default function PanelAdmin() {
       await crearVacante({
         titulo: formulario.titulo,
         descripcion: formulario.descripcion,
-        empresa_id: Number(formulario.empresa_id),
       });
-      setFormulario({ titulo: "", descripcion: "", empresa_id: "" });
+      setFormulario({ titulo: "", descripcion: "" });
       setMostrarFormulario(false);
       await cargarDatos();
     } catch (err) {
@@ -161,16 +160,6 @@ export default function PanelAdmin() {
                       className="w-full px-4 py-3 bg-gray-50 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                       rows={3}
                     />
-                    <input
-                      type="number"
-                      placeholder="ID de empresa"
-                      required
-                      value={formulario.empresa_id}
-                      onChange={(e) =>
-                        setFormulario((prev) => ({ ...prev, empresa_id: e.target.value }))
-                      }
-                      className="w-full px-4 py-3 bg-gray-50 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                    />
                     <button
                       type="submit"
                       disabled={creando}
@@ -195,9 +184,6 @@ export default function PanelAdmin() {
                         <div>
                           <h3 className="font-semibold text-gray-900">{vacante.titulo}</h3>
                           <p className="text-sm text-gray-500 mt-1">{vacante.descripcion}</p>
-                          <span className="text-xs text-gray-400 mt-1 block">
-                            Empresa #{vacante.empresa_id}
-                          </span>
                         </div>
                         <button
                           onClick={() => manejarEliminarVacante(vacante.vacante_id)}
