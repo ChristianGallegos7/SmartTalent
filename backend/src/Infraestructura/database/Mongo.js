@@ -25,11 +25,6 @@ async function connection() {
   }
 }
 
-async function disconnect() {
-  if (mongoose.connection.readyState !== 0) {
-    await mongoose.disconnect();
-    console.log("MongoDB desconectado correctamente");
-  }
-}
+async function disconnect() { }
 
 module.exports = { connection, disconnect };

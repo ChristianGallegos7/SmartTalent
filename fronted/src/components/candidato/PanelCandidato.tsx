@@ -23,6 +23,8 @@ export default function PanelCandidato() {
   const navegar = useNavigate();
   const usuario = obtenerSesion()!;
   const [pestana, setPestana] = useState<Pestana>("vacantes");
+  const [query, setQuery] = useState<string>("");
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [vacantes, setVacantes] = useState<Vacante[]>([]);
   const [postulaciones, setPostulaciones] = useState<Postulacion[]>([]);
   const [habilidades, setHabilidades] = useState<Habilidad[]>([]);
@@ -97,15 +99,29 @@ export default function PanelCandidato() {
   const misPostulaciones = postulaciones.filter((p) => p.usuario_id === usuario.id);
   const yaPostulo = (vacanteId: number) => misPostulaciones.some((p) => p.vacante_id === vacanteId);
 
+  function esVacanteNueva(v: Vacante) {
+    // Marca como nueva si tiene una fecha reciente (intenta varias propiedades conocidas)
+    const raw = (v as any).created_at || (v as any).fecha_publicacion || (v as any).createdAt;
+    if (!raw) return false;
+    const fecha = new Date(raw);
+    const ahora = new Date();
+    const diff = (ahora.getTime() - fecha.getTime()) / (1000 * 60 * 60 * 24);
+    return diff <= 3; // 3 días
+  }
+
   function cerrarSesion() {
     logoutUsuario();
     navegar("/login");
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <>
+    <div className="w-full min-h-screen bg-gray-50 watermark-panel">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-gray-900">SmartTalent</h1>
+        <div className="flex items-center gap-3">
+          <img src="/logo.svg" alt="SmartTalent" className="site-logo" />
+          <h1 className="text-xl font-bold text-gray-900">SmartTalent</h1>
+        </div>
         <div className="flex items-center gap-4">
           <span className="text-sm font-medium text-gray-800">{usuario.nombre}</span>
           <button
@@ -118,6 +134,26 @@ export default function PanelCandidato() {
       </header>
 
       <main className="max-w-5xl mx-auto px-6 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-800">Vacantes disponibles</h2>
+            <p className="text-sm text-gray-500">{vacantes.length} vacante{vacantes.length !== 1 ? 's' : ''} disponible{vacantes.length !== 1 ? 's' : ''}</p>
+          </div>
+          <div className="flex items-center gap-3 w-full max-w-md">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Buscar vacantes..."
+              className="flex-1 px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm shadow-sm focus:outline-none"
+            />
+            <button
+              onClick={() => setMostrarFiltros((s) => !s)}
+              className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm shadow-sm"
+            >
+              Filtros
+            </button>
+          </div>
+        </div>
         {error && (
           <div className="mb-6 p-4 rounded-xl bg-red-50 text-red-600 text-sm border border-red-100">
             {error}
@@ -155,43 +191,29 @@ export default function PanelCandidato() {
                   </p>
                 ) : (
                   <div className="grid gap-4">
-                    {vacantes.map((vacante) => {
-                      const skills = habilidadesDeVacante(vacante.vacante_id);
-                      return (
-                      <div
-                        key={vacante.vacante_id}
-                        className="bg-white rounded-2xl border border-gray-100 p-5 flex justify-between items-start"
-                      >
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900">{vacante.titulo}</h3>
-                          <p className="text-sm text-gray-500 mt-1">{vacante.descripcion}</p>
-                          {skills.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mt-3">
-                              {skills.map((h) => (
-                                <span
-                                  key={h.habilidad_id}
-                                  className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-lg"
-                                >
-                                  {h.nombre}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => abrirModal(vacante)}
-                          disabled={yaPostulo(vacante.vacante_id)}
-                          className={`shrink-0 ml-4 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                            yaPostulo(vacante.vacante_id)
-                              ? "bg-green-50 text-green-600 cursor-default"
-                              : "bg-black text-white hover:bg-gray-800"
-                          }`}
-                        >
-                          {yaPostulo(vacante.vacante_id) ? "Postulado" : "Postular"}
-                        </button>
-                      </div>
-                      );
-                    })}
+                    {vacantes
+                      .filter((v) => {
+                        const q = query.trim().toLowerCase();
+                        if (!q) return true;
+                        return (
+                          v.titulo.toLowerCase().includes(q) ||
+                          (v.descripcion || "").toLowerCase().includes(q)
+                        );
+                      })
+                      .map((vacante) => {
+                        const skills = habilidadesDeVacante(vacante.vacante_id);
+                        const postulado = yaPostulo(vacante.vacante_id);
+                        return (
+                          <VacancyCard
+                            key={vacante.vacante_id}
+                            vacante={vacante}
+                            skills={skills}
+                            postulado={postulado}
+                            nueva={esVacanteNueva(vacante)}
+                            onAbrir={() => abrirModal(vacante)}
+                          />
+                        );
+                      })}
                   </div>
                 )}
               </section>
@@ -260,9 +282,10 @@ export default function PanelCandidato() {
           </>
         )}
       </main>
+      </div>
 
       {modalVacante && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-5">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Postular a vacante</h2>
@@ -308,6 +331,61 @@ export default function PanelCandidato() {
           </div>
         </div>
       )}
+    </>
+  );
+}
+
+function VacancyCard({
+  vacante,
+  skills,
+  postulado,
+  nueva,
+  onAbrir,
+}: {
+  vacante: Vacante;
+  skills: Habilidad[];
+  postulado: boolean;
+  nueva: boolean;
+  onAbrir: () => void;
+}) {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-5 flex justify-between items-start shadow-sm">
+      <div className="flex-1 pr-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 flex items-center justify-center rounded-md bg-green-50 text-green-600 font-bold">JS</div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-gray-900">{vacante.titulo}</h3>
+              {nueva && (
+                <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">Nuevo</span>
+              )}
+            </div>
+            <p className="text-sm text-gray-500 mt-1">{vacante.descripcion}</p>
+          </div>
+        </div>
+
+        {skills.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {skills.map((h) => (
+              <span key={h.habilidad_id} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-lg">
+                {h.nombre}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="shrink-0 ml-4 flex flex-col items-end gap-3">
+        <button
+          onClick={onAbrir}
+          disabled={postulado}
+          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+            postulado ? "bg-green-50 text-green-600 cursor-default" : "bg-blue-600 text-white hover:bg-blue-700"
+          }`}
+        >
+          {postulado ? "Postulado" : "Postular"}
+        </button>
+      </div>
     </div>
   );
 }
