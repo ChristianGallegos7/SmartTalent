@@ -1,11 +1,12 @@
 CLAUDE.md
-.env copy
 
 # Variables de entorno — nunca commitear
 .env
 .env.*
-backend/.env
-fronted/.env
+.env copy
+*/.env
+*/.env.*
+*/.env copy
 
 # Dependencias
 node_modules/
