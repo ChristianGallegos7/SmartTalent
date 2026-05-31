@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { logoutUsuario } from "../../api/auth";
 import { listarHabilidades } from "../../api/habilidades";
-import { listarPostulaciones } from "../../api/postulaciones";
+import { analizarMatch, listarPostulaciones } from "../../api/postulaciones";
 import { obtenerSesion } from "../../api/session";
 import type { VacanteHabilidad } from "../../api/vacanteHabilidades";
 import {
@@ -19,6 +19,12 @@ import type { Postulacion } from "../../tipos/postulacion";
 import type { Vacante } from "../../tipos/vacante";
 
 type Pestana = "vacantes" | "postulaciones";
+
+type GrupoVacante = {
+  vacante_id: number;
+  titulo: string;
+  postulaciones: import("../../tipos/postulacion").Postulacion[];
+};
 
 export default function PanelAdmin() {
   const navegar = useNavigate();
@@ -38,6 +44,8 @@ export default function PanelAdmin() {
   >([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [creando, setCreando] = useState(false);
+  const [vacantesExpandidas, setVacantesExpandidas] = useState<Set<number>>(new Set());
+  const [analizando, setAnalizando] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     cargarDatos();
@@ -115,6 +123,28 @@ export default function PanelAdmin() {
       .filter((vh) => vh.vacante_id === vacante_id)
       .map((vh) => vh.habilidad_id);
     return habilidades.filter((h) => ids.includes(h.habilidad_id));
+  }
+
+  async function manejarAnalizarMatch(postulacion_id: number) {
+    setAnalizando((prev) => new Set(prev).add(postulacion_id));
+    try {
+      const resultado = await analizarMatch(postulacion_id);
+      setPostulaciones((prev) =>
+        prev.map((p) =>
+          p.postulacion_id === postulacion_id
+            ? { ...p, match_score: resultado.match_score }
+            : p,
+        ),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al analizar");
+    } finally {
+      setAnalizando((prev) => {
+        const next = new Set(prev);
+        next.delete(postulacion_id);
+        return next;
+      });
+    }
   }
 
   function cerrarSesion() {
@@ -323,46 +353,131 @@ export default function PanelAdmin() {
                     No hay postulaciones registradas
                   </p>
                 ) : (
-                  <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50 border-b border-gray-100">
-                        <tr>
-                          <th className="text-left px-5 py-3 font-medium text-gray-500">
-                            ID
-                          </th>
-                          <th className="text-left px-5 py-3 font-medium text-gray-500">
-                            Candidato
-                          </th>
-                          <th className="text-left px-5 py-3 font-medium text-gray-500">
-                            Vacante
-                          </th>
-                          <th className="text-left px-5 py-3 font-medium text-gray-500">
-                            Match
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {postulaciones.map((p) => (
-                          <tr
-                            key={p.postulacion_id}
-                            className="border-b border-gray-50 last:border-0"
+                  <div className="space-y-3">
+                    {(() => {
+                      const grupos = postulaciones.reduce<GrupoVacante[]>((acc, p) => {
+                        const existente = acc.find(g => g.vacante_id === p.vacante_id);
+                        if (existente) {
+                          existente.postulaciones.push(p);
+                        } else {
+                          acc.push({
+                            vacante_id: p.vacante_id,
+                            titulo: p.vacante_titulo ?? `Vacante #${p.vacante_id}`,
+                            postulaciones: [p],
+                          });
+                        }
+                        return acc;
+                      }, []);
+
+                      return grupos.map((grupo) => {
+                        const expandido = vacantesExpandidas.has(grupo.vacante_id);
+                        return (
+                          <div
+                            key={grupo.vacante_id}
+                            className="bg-white rounded-2xl border border-gray-100 overflow-hidden"
                           >
-                            <td className="px-5 py-3 text-gray-400">
-                              #{p.postulacion_id}
-                            </td>
-                            <td className="px-5 py-3 text-gray-700">
-                              Usuario #{p.usuario_id}
-                            </td>
-                            <td className="px-5 py-3 text-gray-700">
-                              Vacante #{p.vacante_id}
-                            </td>
-                            <td className="px-5 py-3 text-gray-700">
-                              {p.match_score ?? "—"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                            <button
+                              onClick={() =>
+                                setVacantesExpandidas((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(grupo.vacante_id)) {
+                                    next.delete(grupo.vacante_id);
+                                  } else {
+                                    next.add(grupo.vacante_id);
+                                  }
+                                  return next;
+                                })
+                              }
+                              className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors text-left"
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className="font-semibold text-gray-900">
+                                  {grupo.titulo}
+                                </span>
+                                <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs font-medium">
+                                  {grupo.postulaciones.length} candidato{grupo.postulaciones.length !== 1 ? "s" : ""}
+                                </span>
+                              </div>
+                              <span className="text-gray-400 text-sm">
+                                {expandido ? "▲" : "▼"}
+                              </span>
+                            </button>
+
+                            {expandido && (
+                              <div className="border-t border-gray-100">
+                                <table className="w-full text-sm">
+                                  <thead className="bg-gray-50">
+                                    <tr>
+                                      <th className="text-left px-5 py-2.5 font-medium text-gray-400 text-xs">Candidato</th>
+                                      <th className="text-left px-5 py-2.5 font-medium text-gray-400 text-xs">Correo</th>
+                                      <th className="text-left px-5 py-2.5 font-medium text-gray-400 text-xs">Match</th>
+                                      <th className="text-left px-5 py-2.5 font-medium text-gray-400 text-xs">CV</th>
+                                      <th className="px-5 py-2.5"></th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {grupo.postulaciones.map((p) => {
+                                      const estaAnalizando = analizando.has(p.postulacion_id);
+                                      return (
+                                        <tr
+                                          key={p.postulacion_id}
+                                          className="border-t border-gray-50"
+                                        >
+                                          <td className="px-5 py-3 font-medium text-gray-800">
+                                            {p.candidato_nombre ?? `Usuario #${p.usuario_id}`}
+                                          </td>
+                                          <td className="px-5 py-3 text-gray-400 text-xs">
+                                            {p.candidato_correo ?? "—"}
+                                          </td>
+                                          <td className="px-5 py-3">
+                                            {p.match_score != null ? (
+                                              <span className={`inline-flex items-center px-2.5 py-1 rounded-lg font-medium text-xs ${
+                                                p.match_score >= 70
+                                                  ? "bg-green-50 text-green-700"
+                                                  : p.match_score >= 40
+                                                  ? "bg-yellow-50 text-yellow-700"
+                                                  : "bg-red-50 text-red-600"
+                                              }`}>
+                                                {p.match_score}%
+                                              </span>
+                                            ) : (
+                                              <span className="text-gray-300">—</span>
+                                            )}
+                                          </td>
+                                          <td className="px-5 py-3">
+                                            {p.resume_url ? (
+                                              <a
+                                                href={p.resume_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-500 hover:text-blue-700 font-medium text-xs"
+                                              >
+                                                Ver CV
+                                              </a>
+                                            ) : (
+                                              <span className="text-gray-300">—</span>
+                                            )}
+                                          </td>
+                                          <td className="px-5 py-3 text-right">
+                                            <button
+                                              onClick={() => manejarAnalizarMatch(p.postulacion_id)}
+                                              disabled={estaAnalizando}
+                                              className="text-xs font-medium px-3 py-1.5 rounded-lg bg-black text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                            >
+                                              {estaAnalizando ? "Analizando..." : "Analizar"}
+                                            </button>
+                                          </td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                 )}
               </section>

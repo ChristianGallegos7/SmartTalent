@@ -1,5 +1,7 @@
 const Vacante = require("../../Dominio/Vacante");
 const VacanteModel = require("./VacanteModelSequelize");
+const VacanteHabilidadModel = require("../../../VacanteHabilidad/Infraestructura/Orm/VacanteHabilidadModelSequelize");
+const PostulacionModel = require("../../../Postulacion/Infraestructura/Orm/PostulacionModelSequelize");
 
 class VacanteRepositorioSequelize {
   async create(vacante) {
@@ -15,6 +17,8 @@ class VacanteRepositorioSequelize {
     return this.findById(id);
   }
   async delete(id) {
+    await VacanteHabilidadModel.destroy({ where: { vacante_id: id } });
+    await PostulacionModel.destroy({ where: { vacante_id: id } });
     return await VacanteModel.destroy({ where: { vacante_id: id } });
   }
   async findById(id) {

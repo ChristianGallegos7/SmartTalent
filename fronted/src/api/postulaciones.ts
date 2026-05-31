@@ -14,6 +14,21 @@ export async function listarPostulaciones(): Promise<Postulacion[]> {
   return respuesta.json();
 }
 
+export async function analizarMatch(postulacion_id: number): Promise<{
+  postulacion_id: number;
+  match_score: number;
+  resumen: string;
+}> {
+  const token = obtenerToken();
+  const respuesta = await fetch(`${URL_API}/api/postulaciones/${postulacion_id}/analizar`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await respuesta.json();
+  if (!respuesta.ok) throw new Error(data.error ?? "Error al analizar");
+  return data;
+}
+
 export async function crearPostulacion(datos: {
   usuario_id: number;
   vacante_id: number;
